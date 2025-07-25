@@ -13,13 +13,15 @@ public:
             return false;
         }
 
-        // Find JNI_GetCreatedJavaVMs symbol
-        void* GetCreatedJavaVMs = reinterpret_cast<jint(*)(JavaVM**, jsize, jsize*)>(dlsym(jvm, "JNI_GetCreatedJavaVMs"));
-        if (!GetCreatedJavaVMs) {
+        // Define function pointer type for JNI_GetCreatedJavaVMs
+        using t_JNI_GetCreatedJavaVMs = jint(*)(JavaVM**, jsize, jsize*);
+        void* s_JNI_GetCreatedJavaVMs = dlsym(jvm, "JNI_GetCreatedJavaVMs");
+        if (!s_JNI_GetCreatedJavaVMs) {
             Logger::Log("Failed to find symbol: JNI_GetCreatedJavaVMs");
             dlclose(jvm);
             return false;
         }
+        auto GetCreatedJavaVMs = reinterpret_cast<t_JNI_GetCreatedJavaVMs>(s_JNI_GetCreatedJavaVMs);
 
         // Call JNI_GetCreatedJavaVMs
         jint error = GetCreatedJavaVMs(&vm, 1, nullptr);
