@@ -20,8 +20,8 @@
 ## Feature Roadmap
 
 ### v1: Core Features
-- [ ] Attach to running JVMs
-- [ ] Display JVM/process info
+- [X] Attach to running JVMs
+- [X] Display JVM/process info
 - [ ] Enumerate all loaded classes
 - [ ] Hook to class load event
 - [ ] Class hierarchy navigation
