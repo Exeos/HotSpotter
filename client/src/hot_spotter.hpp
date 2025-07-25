@@ -8,5 +8,6 @@ namespace hot_spotter {
     extern jvmtiEnv* jvmTi;
 
     void init();
+    bool showWindow();
     void tidy();
 }

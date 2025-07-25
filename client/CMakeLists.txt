@@ -34,7 +34,7 @@ target_include_directories(client PRIVATE
 
 target_link_libraries(client PRIVATE
         glfw
-        ${OPENGL_gl_LIBRARY}
+        ${OPENGL_LIBRARIES}
         dl pthread
 )
 
