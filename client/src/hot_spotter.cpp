@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "attacher/Attacher.hpp"
-#include "logger/logger.hpp"
+#include "../attacher/Attacher.hpp"
+#include "../logger/logger.hpp"
 
 namespace hot_spotter {
 
