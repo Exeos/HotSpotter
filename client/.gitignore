@@ -1,0 +1,48 @@
+# Build directories
+build/
+cmake-build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+CMakeScripts/
+Makefile
+CTestTestfile.cmake
+install_manifest.txt
+compile_commands.json
+
+# Visual Studio Code
+.vscode/
+
+# CLion
+.idea/
+*.iml
+
+# Compiled binaries and objects
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.out
+*.a
+*.lib
+
+# Misc
+*.log
+*.tmp
+*.swp
+*.swo
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Generated documentation
+doc/
+docs/
+
+# Test output
+Testing/
