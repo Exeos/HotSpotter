@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <GLFW/glfw3.h>
 
+#include "hooks/hooks.hpp"
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
@@ -24,25 +26,59 @@ namespace hot_spotter {
 
     void init() {
         if (!Logger::InitConsole()) {
-            goto exit;
+            return;
         }
         Logger::Log("Allocated Console");
 
         if (Attacher* attacher = createAttacher(); !attacher->attach(jvm, jniEnv, jvmTi)) {
             Logger::Log("Failed to attach to jvm.");
-            goto exit;
+            return;
         }
 
         Logger::LogFormat("jvm_handle: %p", reinterpret_cast<intptr_t>(jvm));
         Logger::LogFormat("jni_env: %p", reinterpret_cast<intptr_t>(jniEnv));
         Logger::LogFormat("jvm_ti: %p", reinterpret_cast<intptr_t>(jvmTi));
 
+        jvmtiCapabilities capa;
+        jvmtiError err;
+
+        err = jvmTi->GetPotentialCapabilities(&capa);
+        if (err == JVMTI_ERROR_NONE) {
+            err = jvmTi->AddCapabilities(&capa);
+        }
+
+        if (err != JVMTI_ERROR_NONE) {
+            Logger::Log("Failed to get or set Capabilities");
+        }
+
+        if (!hooks::initHooks()) {
+            Logger::Log("Failed to init hooks");
+        }
+
+        jclass* classes;
+        jint classCount;
+
+        if (jvmtiError error = jvmTi->GetLoadedClasses(&classCount, &classes); error != JVMTI_ERROR_NONE) {
+            Logger::Log("Failed to get loaded classes");
+        }
+
+        std::vector<jclass> modifiable;
+        for (int i = 0; i < classCount; ++i) {
+            jboolean isModifiable = false;
+            if (jvmTi->IsModifiableClass(classes[i], &isModifiable) == JVMTI_ERROR_NONE && isModifiable) {
+                modifiable.push_back(classes[i]);
+            }
+        }
+
+        if (!modifiable.empty()) {
+            if (jvmTi->RetransformClasses(modifiable.size(), modifiable.data()) != JVMTI_ERROR_NONE) {
+                Logger::Log("RetransformClasses failed");
+            }
+        }
+
         if (!showWindow()) {
             Logger::Log("Failed to show imgui window");
         }
-
-        exit:
-        tidy();
     }
 
     bool showWindow() {

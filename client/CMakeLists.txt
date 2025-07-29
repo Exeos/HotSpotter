@@ -15,6 +15,8 @@ set(IMGUI_SOURCES
         external/imgui/imgui_demo.cpp
         external/imgui/backends/imgui_impl_glfw.cpp
         external/imgui/backends/imgui_impl_opengl3.cpp
+        src/hooks/hooks.hpp
+        src/hooks/hooks.cpp
 )
 
 
