@@ -15,6 +15,8 @@ set(IMGUI_SOURCES
         external/imgui/imgui_demo.cpp
         external/imgui/backends/imgui_impl_glfw.cpp
         external/imgui/backends/imgui_impl_opengl3.cpp
+        src/hooks/hooks.hpp
+        src/hooks/hooks.cpp
 )
 
 
@@ -28,8 +30,8 @@ target_include_directories(client PRIVATE
         external/imgui
         external/imgui/backends
         external/glfw/include
-        include
-        include/linux
+        external/java
+        external/java/linux
 )
 
 target_link_libraries(client PRIVATE
