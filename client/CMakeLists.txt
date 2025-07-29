@@ -30,8 +30,8 @@ target_include_directories(client PRIVATE
         external/imgui
         external/imgui/backends
         external/glfw/include
-        include
-        include/linux
+        external/java
+        external/java/linux
 )
 
 target_link_libraries(client PRIVATE

@@ -26,7 +26,7 @@
 #ifndef _JAVASOFT_JAWT_H_
 #define _JAVASOFT_JAWT_H_
 
-#include "jni.h"
+#include "../../include/jni.h"
 
 #ifdef __cplusplus
 extern "C" {

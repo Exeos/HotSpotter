@@ -8,7 +8,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
-#include <stdio.h>
+#include <cstdio>
 #include <GLFW/glfw3.h>
 
 #include "hooks/hooks.hpp"
@@ -30,19 +30,19 @@ namespace hot_spotter {
         }
         Logger::Log("Allocated Console");
 
-        if (Attacher* attacher = createAttacher(); !attacher->attach(jvm, jniEnv, jvmTi)) {
+        Attacher* attacher = createAttacher();
+        if (!attacher->attach(jvm, jniEnv, jvmTi)) {
             Logger::Log("Failed to attach to jvm.");
             return;
         }
+        delete attacher;
 
         Logger::LogFormat("jvm_handle: %p", reinterpret_cast<intptr_t>(jvm));
         Logger::LogFormat("jni_env: %p", reinterpret_cast<intptr_t>(jniEnv));
         Logger::LogFormat("jvm_ti: %p", reinterpret_cast<intptr_t>(jvmTi));
 
         jvmtiCapabilities capa;
-        jvmtiError err;
-
-        err = jvmTi->GetPotentialCapabilities(&capa);
+        jvmtiError err = jvmTi->GetPotentialCapabilities(&capa);
         if (err == JVMTI_ERROR_NONE) {
             err = jvmTi->AddCapabilities(&capa);
         }
@@ -51,13 +51,15 @@ namespace hot_spotter {
             Logger::Log("Failed to get or set Capabilities");
         }
 
+        Logger::Log("Initializing hooks");
         if (!hooks::initHooks()) {
             Logger::Log("Failed to init hooks");
         }
 
+        Logger::Log("Collecting classes and using Retransform to pass them to ClassLoad hook");
+
         jclass* classes;
         jint classCount;
-
         if (jvmtiError error = jvmTi->GetLoadedClasses(&classCount, &classes); error != JVMTI_ERROR_NONE) {
             Logger::Log("Failed to get loaded classes");
         }
@@ -148,7 +150,6 @@ namespace hot_spotter {
 
         return true;
     }
-
 
     void tidy() {
         Logger::CloseConsole();
