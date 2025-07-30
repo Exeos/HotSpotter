@@ -26,7 +26,7 @@
 - [X] Attach to running JVMs
 - [X] Display JVM/process info
 - [ ] Enumerate all loaded classes
-- [ ] Hook to class load event
+- [X] Hook to class load event
 - [ ] Class hierarchy navigation
 - [ ] View class details: classinfo, fields, methods
 - [ ] Dump classes to disk
