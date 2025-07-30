@@ -17,6 +17,11 @@ set(IMGUI_SOURCES
         external/imgui/backends/imgui_impl_opengl3.cpp
         src/hooks/hooks.hpp
         src/hooks/hooks.cpp
+        src/gui/Window.hpp
+        src/gui/MainWindow.cpp
+        src/gui/MainWindow.hpp
+        src/capabilities/capabilities.hpp
+        src/capabilities/capabilities.cpp
 )
 
 
