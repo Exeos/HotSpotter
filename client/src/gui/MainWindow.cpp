@@ -1,10 +1,14 @@
 #include "MainWindow.hpp"
+
+#include <ranges>
+
 #include "imgui.h"
 #include <GLFW/glfw3.h>
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "../globals.hpp"
+#include "components/FileTree.hpp"
 
 namespace hot_spotter::gui {
 
@@ -51,10 +55,35 @@ namespace hot_spotter::gui {
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            ImGui::Begin("Data");
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+                                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
+
+            // Set next window position and size to cover the entire native window
+            ImGui::SetNextWindowPos(ImVec2(0, 0));
+            ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+
+            ImGui::Begin("Main", nullptr, window_flags);
+
+            ImGui::BeginChild("Classes", ImVec2(300, 0), true);
+
+            std::vector<std::string> fileList;
+            for (const auto &key: classes | std::views::keys) {
+                fileList.push_back(key);
+            }
+
+            auto fileTree = std::make_unique<FileTree>("classes", fileList);
+            fileTree->render();
+
+            ImGui::EndChild();
+
+            ImGui::SameLine();
+
+            ImGui::BeginChild("Info", ImVec2(0, 0), false);
             ImGui::Text("jvm_handle: %p", reinterpret_cast<intptr_t>(jvm));
             ImGui::Text("jni_env: %p", reinterpret_cast<intptr_t>(jniEnv));
             ImGui::Text("jvm_ti: %p", reinterpret_cast<intptr_t>(jvmTi));
+            ImGui::EndChild();
+
             ImGui::End();
 
             // Rendering

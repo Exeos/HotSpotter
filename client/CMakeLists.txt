@@ -25,6 +25,7 @@ set(IMGUI_SOURCES
         src/class_dumper/class_dumper.hpp
         src/class_dumper/class_dumper.cpp
         src/globals.hpp
+        src/gui/components/FileTree.hpp
 )
 
 

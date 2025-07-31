@@ -2,4 +2,5 @@
 
 namespace hot_spotter::hooks {
     bool initHooks();
+    bool removeHooks();
 }

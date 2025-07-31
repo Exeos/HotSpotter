@@ -57,7 +57,9 @@ namespace hot_spotter {
         Logger::Log("Initialized, starting gui");
         startGui();
 
+        Logger::Log("Exiting, cleaning up");
         tidy();
+        Logger::Log("Bye bye :)");
     }
 
     void startGui() {
@@ -71,10 +73,15 @@ namespace hot_spotter {
 
 
     void tidy() {
+        if (!hooks::removeHooks()) {
+            Logger::Log("Failed to remove hooks");
+        }
+
         for (auto entry : classes) {
             // delete manually allocated class file data memory
             delete[] entry.second.second.second;
         }
+
         Logger::CloseConsole();
     }
 }
