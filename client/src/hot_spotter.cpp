@@ -6,12 +6,14 @@
 #include "logger/logger.hpp"
 
 #include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
-#include <cstdio>
-#include <GLFW/glfw3.h>
+#include <string>
+#include <map>
 
+#include "globals.hpp"
+#include "jni.h"
+#include "jvmti.h"
 #include "capabilities/capabilities.hpp"
+#include "class_dumper/class_dumper.hpp"
 #include "gui/MainWindow.hpp"
 #include "hooks/hooks.hpp"
 
@@ -25,6 +27,7 @@ namespace hot_spotter {
     JavaVM* jvm = nullptr;
     JNIEnv* jniEnv = nullptr;
     jvmtiEnv* jvmTi = nullptr;
+    class_map_t classes = {};
 
     void init() {
         if (!Logger::InitConsole()) {
@@ -47,43 +50,31 @@ namespace hot_spotter {
             Logger::Log("Failed to init hooks");
         }
 
-        Logger::Log("Initialized");
-
-        Logger::LogFormat("jvm_handle: %p", reinterpret_cast<intptr_t>(jvm));
-        Logger::LogFormat("jni_env: %p", reinterpret_cast<intptr_t>(jniEnv));
-        Logger::LogFormat("jvm_ti: %p", reinterpret_cast<intptr_t>(jvmTi));
-
-        Logger::Log("Collecting classes and using Retransform to pass them to ClassLoad hook");
-
-        jclass* classes;
-        jint classCount;
-        if (jvmtiError error = jvmTi->GetLoadedClasses(&classCount, &classes); error != JVMTI_ERROR_NONE) {
-            Logger::Log("Failed to get loaded classes");
+        if (!class_dumper::dump()) {
+            Logger::Log("Failed to setup class dump");
         }
 
-        std::vector<jclass> modifiable;
-        for (int i = 0; i < classCount; ++i) {
-            jboolean isModifiable = false;
-            if (jvmTi->IsModifiableClass(classes[i], &isModifiable) == JVMTI_ERROR_NONE && isModifiable) {
-                modifiable.push_back(classes[i]);
-            }
-        }
+        Logger::Log("Initialized, starting gui");
+        startGui();
 
-        if (!modifiable.empty()) {
-            if (jvmTi->RetransformClasses(modifiable.size(), modifiable.data()) != JVMTI_ERROR_NONE) {
-                Logger::Log("RetransformClasses failed");
-            }
-        }
+        tidy();
+    }
 
+    void startGui() {
         auto* mainWindow = new gui::MainWindow();
-        mainWindow->init();
-        mainWindow->render();
-        mainWindow->close();
-
+        if (mainWindow->init()) {
+            mainWindow->render();
+            mainWindow->close();
+        }
         delete mainWindow;
     }
 
+
     void tidy() {
+        for (auto entry : classes) {
+            // delete manually allocated class file data memory
+            delete[] entry.second.second.second;
+        }
         Logger::CloseConsole();
     }
 }

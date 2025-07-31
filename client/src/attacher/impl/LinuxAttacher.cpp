@@ -1,5 +1,3 @@
-#include "../../../external/java/jni.h"
-#include "jvmti.h"
 #include <dlfcn.h>
 #include "../Attacher.hpp"
 #include "../../logger/logger.hpp"

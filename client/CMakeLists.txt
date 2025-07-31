@@ -22,6 +22,9 @@ set(IMGUI_SOURCES
         src/gui/MainWindow.hpp
         src/capabilities/capabilities.hpp
         src/capabilities/capabilities.cpp
+        src/class_dumper/class_dumper.hpp
+        src/class_dumper/class_dumper.cpp
+        src/globals.hpp
 )
 
 

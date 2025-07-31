@@ -1,4 +1,6 @@
 #pragma once
+#include "jni.h"
+#include "jvmti.h"
 
 class Attacher {
 public:

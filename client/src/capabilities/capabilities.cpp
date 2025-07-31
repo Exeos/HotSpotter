@@ -1,6 +1,6 @@
 #include "capabilities.hpp"
 
-#include "../hot_spotter.hpp"
+#include "../globals.hpp"
 
 namespace hot_spotter::capabilities {
 
