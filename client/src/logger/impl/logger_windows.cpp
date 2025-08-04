@@ -73,6 +73,7 @@ namespace Logger {
         switch (dwCtrlType) {
             case CTRL_CLOSE_EVENT:
                 CloseConsole();
+//                MessageBoxA(nullptr, "Shutting down HotSpotter | Made with <3 by DevOfDeath & Exeos", "Shutdown Notification", MB_OK | MB_ICONINFORMATION);
                 FreeLibraryAndExitThread(Windows_Utils::GetModuleHandleA(), TRUE);
                 return TRUE;
             case CTRL_C_EVENT:
