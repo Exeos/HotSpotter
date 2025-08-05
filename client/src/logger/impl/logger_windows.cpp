@@ -7,6 +7,7 @@
 
 #include "../logger.hpp"
 #include "../../platform/windows_utils.h"
+#include "../../utils/ProgramState.h"
 #include <iostream>
 #include <mutex>
 #include <chrono>
@@ -16,8 +17,18 @@
 #include <fcntl.h>
 
 static std::mutex logger_mutex;
+
+static bool g_ConsoleAllocated = false;
 static HANDLE g_consoleHandle = nullptr;
-static FILE* g_consoleStream = nullptr;
+
+static FILE* g_StdOut{nullptr};
+static FILE* g_StdIn{nullptr};
+static FILE* g_StdErr{nullptr};
+
+// Original file descriptors
+static int g_OriginalStdOutFd = -1;
+static int g_OriginalStdErrFd = -1;
+static int g_OriginalStdInFd = -1;
 
 BOOL WINAPI ConsoleHandler(DWORD dwCtrlType);
 
@@ -31,39 +42,7 @@ namespace Logger {
         return std::string(buf);
     }
 
-    //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
-    std::string GetLastErrorAsString()
-    {
-        //Get the error message ID, if any.
-        DWORD errorMessageID = ::GetLastError();
-        if(errorMessageID == 0) {
-            return std::string(); //No error message has been recorded
-        }
 
-        LPSTR messageBuffer = nullptr;
-
-        //Ask Win32 to give us the string version of that message ID.
-        //The parameters we pass in, tell Win32 to create the buffer that holds the message for us (because we don't yet know how long the message string will be).
-        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                     NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-
-        //Copy the error message into a std::string.
-        std::string message(messageBuffer, size);
-
-        //Free the Win32's string's buffer.
-        LocalFree(messageBuffer);
-
-        return message;
-    }
-
-    std::string GetCurrentConsoleTitle() {
-        char title[MAX_PATH];
-        DWORD length = GetConsoleTitleA(title, MAX_PATH);
-        if (length > 0) {
-            return std::string(title, length);
-        }
-        return "";
-    }
 
     bool ConsoleExists() {
         return GetConsoleWindow() != NULL;
@@ -71,14 +50,21 @@ namespace Logger {
 
     BOOL WINAPI ConsoleHandler(DWORD dwCtrlType) {
         switch (dwCtrlType) {
-            case CTRL_CLOSE_EVENT:
-                CloseConsole();
-//                MessageBoxA(nullptr, "Shutting down HotSpotter | Made with <3 by DevOfDeath & Exeos", "Shutdown Notification", MB_OK | MB_ICONINFORMATION);
-                FreeLibraryAndExitThread(Windows_Utils::GetModuleHandleA(), TRUE);
-                return TRUE;
-            case CTRL_C_EVENT:
             case CTRL_BREAK_EVENT:
-                return TRUE;
+            case CTRL_C_EVENT:
+            case CTRL_CLOSE_EVENT:
+                if (ProgramState::isRunning()) {
+                    ProgramState::terminate();
+                    // Wait for graceful shutdown before allowing console to close
+                    if (ProgramState::waitForTermination(std::chrono::milliseconds(3000))) {
+                        return TRUE; // Allow console to close after successful termination
+                    } else {
+                        // Force termination if timeout exceeded
+                        ProgramState::markTerminated();
+                        return TRUE;
+                    }
+                }
+                return TRUE; // Already terminated, allow close
             default:
                 return FALSE;
         }
@@ -86,41 +72,42 @@ namespace Logger {
 
     bool InitConsole(const std::string& title) {
         if (ConsoleExists()) return true;
-        bool attached_to_existing = false;
+        // Save original file descriptors
+        g_OriginalStdOutFd = _dup(_fileno(stdout));
+        g_OriginalStdErrFd = _dup(_fileno(stderr));
+        g_OriginalStdInFd = _dup(_fileno(stdin));
 
-        // Try to attach to parent console first
         if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-            attached_to_existing = true;
+            g_ConsoleAllocated = false;
         } else if (AllocConsole()) {
-            // If attach failed, allocate a new console
-            attached_to_existing = false;
+            g_ConsoleAllocated = true;
         } else {
-            std::string errormsg = GetLastErrorAsString();
+            std::string errormsg = Windows_Utils::GetLastErrorAsString();
             MessageBoxA(nullptr, errormsg.c_str(), "InitConsole Error", MB_OK | MB_ICONERROR);
+            if (g_OriginalStdOutFd != -1) _dup2(g_OriginalStdOutFd, _fileno(stdout));
+            if (g_OriginalStdErrFd != -1) _dup2(g_OriginalStdErrFd, _fileno(stderr));
+            if (g_OriginalStdInFd != -1) _dup2(g_OriginalStdInFd, _fileno(stdin));
             return false;
         }
         SetConsoleTitleA((title + " | Windows Port made by DevOfDeath").c_str());
-        // Set console title (only if we allocated a new console)
-        if (!attached_to_existing) {
-            // Redirect stdout, stdin, stderr to console (only for new console)
-            g_consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-            freopen_s(&g_consoleStream, "CONOUT$", "w", stdout);
-            freopen_s(&g_consoleStream, "CONOUT$", "w", stderr);
-            freopen_s(&g_consoleStream, "CONIN$", "r", stdin);
+        if (g_ConsoleAllocated) {
+            freopen_s(&g_StdOut, "CONOUT$", "w", stdout);
+            freopen_s(&g_StdErr, "CONOUT$", "w", stderr);
+            freopen_s(&g_StdIn, "CONIN$", "r", stdin);
             SetConsoleCtrlHandler(ConsoleHandler, TRUE);
 
-            HWND hwnd = GetConsoleWindow();
-            if (hwnd) ShowWindow(hwnd, SW_SHOW);
+            g_consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+            if (g_consoleHandle != INVALID_HANDLE_VALUE) {
+                DWORD consoleMode;
+                if (GetConsoleMode(g_consoleHandle, &consoleMode)) {
+                    consoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                    SetConsoleMode(g_consoleHandle, consoleMode);
+                }
+            }
         }
-
-        // Get console handle
-        g_consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-
-        // Enable ANSI escape sequences for colored output (Windows 10+)
-        DWORD mode = 0;
-        GetConsoleMode(g_consoleHandle, &mode);
-        SetConsoleMode(g_consoleHandle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-
+        HWND hwnd = GetConsoleWindow();
+        if (hwnd) ShowWindow(hwnd, SW_SHOW);
         return true;
     }
 
@@ -137,33 +124,41 @@ namespace Logger {
     }
 
     void CloseConsole() {
-        if (g_consoleStream) {
-            fclose(g_consoleStream);
-            g_consoleStream = nullptr;
+        if (!ConsoleExists()) return;
+        if (g_ConsoleAllocated) {
+            SetConsoleCtrlHandler(ConsoleHandler, FALSE);
+            if (g_StdOut) {
+                fclose(g_StdOut);
+                g_StdOut = nullptr;
+            }
+            if (g_StdErr) {
+                fclose(g_StdErr);
+                g_StdErr = nullptr;
+            }
+            if (g_StdIn) {
+                fclose(g_StdIn);
+                g_StdIn = nullptr;
+            }
+            FreeConsole();
+            g_consoleHandle = nullptr;
+            g_ConsoleAllocated = false;
+
+            // Restore original streams
+            if (g_OriginalStdOutFd != -1) {
+                _dup2(g_OriginalStdOutFd, _fileno(stdout));
+                _close(g_OriginalStdOutFd);
+                g_OriginalStdOutFd = -1;
+            }
+            if (g_OriginalStdErrFd != -1) {
+                _dup2(g_OriginalStdErrFd, _fileno(stderr));
+                _close(g_OriginalStdErrFd);
+                g_OriginalStdErrFd = -1;
+            }
+            if (g_OriginalStdInFd != -1) {
+                _dup2(g_OriginalStdInFd, _fileno(stdin));
+                _close(g_OriginalStdInFd);
+                g_OriginalStdInFd = -1;
+            }
         }
-
-        // Close redirected C runtime I/O streams
-        fclose(stdin);
-        fclose(stdout);
-        fclose(stderr);
-
-        // Reset CRT file descriptors to invalid
-        /*_close(_fileno(stdin));
-        _close(_fileno(stdout));
-        _close(_fileno(stderr));*/
-
-        // Clear internal buffers
-        std::ios::sync_with_stdio(false);
-
-        // Unset console handles
-        SetStdHandle(STD_INPUT_HANDLE, nullptr);
-        SetStdHandle(STD_OUTPUT_HANDLE, nullptr);
-        SetStdHandle(STD_ERROR_HANDLE, nullptr);
-
-        // Remove handler and free console
-        FreeConsole();
-        SetConsoleCtrlHandler(ConsoleHandler, FALSE);
-
-        g_consoleHandle = nullptr;
     }
 }

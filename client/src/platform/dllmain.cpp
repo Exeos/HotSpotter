@@ -10,50 +10,55 @@
 #include <io.h>
 #include "windows_utils.h"
 #include "../logger/logger.hpp"
+#include "../utils/ProgramState.h"
+#include "../platform/windows_utils.h"
 
 using std::cout;
 
-void CleanupConsole();
-
 #include "../hot_spotter.hpp"
 
-HMODULE g_hModule = nullptr;
+DWORD WINAPI MainThread(HMODULE instance) {
 
-DWORD WINAPI MainThread(LPVOID lpParam) {
-    HMODULE hModule = (HMODULE)lpParam;
-//    std::thread(hot_spotter::init).detach();
+    std::thread(hot_spotter::init).detach();
 //    hot_spotter::init();
-    MessageBoxA(nullptr, "PLEASE GOD I'VE BEEN STUCK AT THIS SHIT FOR ETERNITY", "HELP", MB_HELP);
+    /*MessageBoxA(nullptr, "PLEASE GOD I'VE BEEN STUCK AT THIS SHIT FOR ETERNITY", "HELP", MB_HELP);
     if (!Logger::InitConsole()) {
-        FreeLibraryAndExitThread(hModule, TRUE);
+        FreeLibraryAndExitThread(instance, TRUE);
     }
     printf("Yooo wsgggg from console world!\n");
     Logger::Log("Logging wit da Logga!");
-    Logger::CloseConsole();
 
-    FreeLibraryAndExitThread(hModule, TRUE);
+    int i{};
+    while (ProgramState::isRunning()) {
+//        Logger::Log(std::to_string(i));
+        MessageBoxA(nullptr, std::to_string(i).c_str(), "counter", MB_OK | MB_ICONEXCLAMATION);
+        i++;
+        Sleep(100);
+    }
+    MessageBoxA(nullptr, "thread", "thread", MB_OK | MB_ICONEXCLAMATION);
+    FreeLibraryAndExitThread(instance, 0);*/
+    while (ProgramState::isRunning()) {
+
+    }
+    ProgramState::markTerminated();
+    FreeLibraryAndExitThread(instance, 0);
     return TRUE;
 }
 
-DWORD APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved) {
+DWORD APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved) {
     switch (reason) {
         case DLL_PROCESS_ATTACH: {
-            g_hModule = hModule;
-            DisableThreadLibraryCalls(hModule);
-            CreateThread(nullptr, 0, MainThread, hModule, 0, nullptr);
+            DisableThreadLibraryCalls(instance);
+            CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(MainThread), instance, 0, nullptr);
             break;
         }
         case DLL_PROCESS_DETACH: {
-            Logger::CloseConsole();
+//            MessageBoxA(nullptr, "detach", "detach", MB_OK | MB_ICONEXCLAMATION);
+//            Logger::CloseConsole();
             break;
         }
     }
     return TRUE;
 }
 
-namespace Windows_Utils {
-    HMODULE GetModuleHandle() {
-        return g_hModule;
-    }
-}
 
