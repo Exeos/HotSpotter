@@ -42,6 +42,7 @@ namespace hot_spotter {
         Attacher* attacher = createAttacher();
         if (!attacher->attach(jvm, jniEnv, jvmTi)) {
             Logger::Log("Failed to attach to jvm.");
+            tidy(); // Clean up before exiting
             return;
         }
         delete attacher;
@@ -59,12 +60,12 @@ namespace hot_spotter {
         }
 
         Logger::Log("Initialized, starting gui");
+
         startGui();
 
-        Logger::Log("Exiting, cleaning up");
+//        Logger::Log("Exiting, cleaning up");
+//        Logger::Log("Bye bye :)");
         tidy();
-        Logger::Log("Bye bye :)");
-        ProgramState::terminate();
     }
 
     void startGui() {

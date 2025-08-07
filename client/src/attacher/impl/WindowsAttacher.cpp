@@ -15,7 +15,7 @@ public:
             return false;
         }
 
-        // Define function pointer type for JNI_GetCreatedJavaVMs
+
         using t_JNI_GetCreatedJavaVMs = jint(*)(JavaVM**, jsize, jsize*);
         FARPROC proc = GetProcAddress(jvm_handle, "JNI_GetCreatedJavaVMs");
         if (!proc) {
@@ -25,7 +25,7 @@ public:
         }
         auto GetCreatedJavaVMs = reinterpret_cast<t_JNI_GetCreatedJavaVMs>(proc);
 
-        // Call JNI_GetCreatedJavaVMs
+
         jint error = GetCreatedJavaVMs(&vm, 1, nullptr);
         if (error != JNI_OK) {
             Logger::Log("Failed to obtain jvm");
@@ -33,7 +33,7 @@ public:
             return false;
         }
 
-        // Attach current thread to JVM
+
         error = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
         if (error != JNI_OK) {
             Logger::Log("Failed to attach thread to jvm");
@@ -41,7 +41,6 @@ public:
             return false;
         }
 
-        // Get JVMTI environment
         error = vm->GetEnv(reinterpret_cast<void**>(&jvmtiEnv), JVMTI_VERSION_1_1);
         if (error != JNI_OK || !jvmtiEnv) {
             Logger::Log("Failed to obtain jvmTi");

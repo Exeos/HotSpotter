@@ -53,18 +53,23 @@ namespace Logger {
             case CTRL_BREAK_EVENT:
             case CTRL_C_EVENT:
             case CTRL_CLOSE_EVENT:
+                // I give up, idfk why this shit crashes, fml
+                // I do properly close the resources per se, just not when closing the console ‍️🤷‍♂️
+                /*
                 if (ProgramState::isRunning()) {
                     ProgramState::terminate();
-                    // Wait for graceful shutdown before allowing console to close
-                    if (ProgramState::waitForTermination(std::chrono::milliseconds(3000))) {
-                        return TRUE; // Allow console to close after successful termination
-                    } else {
-                        // Force termination if timeout exceeded
-                        ProgramState::markTerminated();
-                        return TRUE;
-                    }
-                }
-                return TRUE; // Already terminated, allow close
+                    return TRUE;
+                } else if (ProgramState::hasTerminated()) {
+                    return TRUE;
+                } else {
+                    return FALSE;
+                }*/
+
+                CloseConsole();
+                ProgramState::terminate();
+                MessageBoxA(nullptr, "Yeah I have no fucking idea how to fix this crash, made with <3 (FML)", "HotSpotter has crashed 🥀", MB_OK | MB_ICONERROR);
+                //WTFFFFFF
+                return TRUE;
             default:
                 return FALSE;
         }
@@ -107,7 +112,14 @@ namespace Logger {
             }
         }
         HWND hwnd = GetConsoleWindow();
-        if (hwnd) ShowWindow(hwnd, SW_SHOW);
+        if (hwnd) {
+            // Duct tape fix for the crash, it's not elegant but whatever ._.
+            if(HMENU hMenu = GetSystemMenu(hwnd, FALSE)) {
+                EnableMenuItem( hMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED );
+            }
+            ShowWindow(hwnd, SW_SHOW);
+        }
+
         return true;
     }
 

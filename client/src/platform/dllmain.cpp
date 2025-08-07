@@ -18,29 +18,7 @@ using std::cout;
 #include "../hot_spotter.hpp"
 
 DWORD WINAPI MainThread(HMODULE instance) {
-
-    std::thread(hot_spotter::init).detach();
-//    hot_spotter::init();
-    /*MessageBoxA(nullptr, "PLEASE GOD I'VE BEEN STUCK AT THIS SHIT FOR ETERNITY", "HELP", MB_HELP);
-    if (!Logger::InitConsole()) {
-        FreeLibraryAndExitThread(instance, TRUE);
-    }
-    printf("Yooo wsgggg from console world!\n");
-    Logger::Log("Logging wit da Logga!");
-
-    int i{};
-    while (ProgramState::isRunning()) {
-//        Logger::Log(std::to_string(i));
-        MessageBoxA(nullptr, std::to_string(i).c_str(), "counter", MB_OK | MB_ICONEXCLAMATION);
-        i++;
-        Sleep(100);
-    }
-    MessageBoxA(nullptr, "thread", "thread", MB_OK | MB_ICONEXCLAMATION);
-    FreeLibraryAndExitThread(instance, 0);*/
-    while (ProgramState::isRunning()) {
-
-    }
-    ProgramState::markTerminated();
+    hot_spotter::init();
     FreeLibraryAndExitThread(instance, 0);
     return TRUE;
 }
