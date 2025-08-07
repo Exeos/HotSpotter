@@ -49,6 +49,7 @@
     - Select instance to view/patch fields
 - [ ] Patch fields (value, access modifiers)
 - [ ] Patch/replace method bytecode (if technically possible)
+- [ ] Runtime Renaming/Remapping of methods/fields/classes
 
 ---
 

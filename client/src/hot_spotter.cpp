@@ -4,6 +4,7 @@
 
 #include "attacher/Attacher.hpp"
 #include "logger/logger.hpp"
+#include "utils/ProgramState.h"
 
 #include "imgui.h"
 #include <string>
@@ -16,6 +17,9 @@
 #include "class_dumper/class_dumper.hpp"
 #include "gui/MainWindow.hpp"
 #include "hooks/hooks.hpp"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 static void glfw_error_callback(int error, const char* description)
 {
@@ -38,6 +42,7 @@ namespace hot_spotter {
         Attacher* attacher = createAttacher();
         if (!attacher->attach(jvm, jniEnv, jvmTi)) {
             Logger::Log("Failed to attach to jvm.");
+            tidy(); // Clean up before exiting
             return;
         }
         delete attacher;
@@ -55,11 +60,12 @@ namespace hot_spotter {
         }
 
         Logger::Log("Initialized, starting gui");
+
         startGui();
 
-        Logger::Log("Exiting, cleaning up");
+//        Logger::Log("Exiting, cleaning up");
+//        Logger::Log("Bye bye :)");
         tidy();
-        Logger::Log("Bye bye :)");
     }
 
     void startGui() {

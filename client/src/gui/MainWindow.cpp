@@ -9,6 +9,7 @@
 #include "imgui_impl_opengl3.h"
 #include "../globals.hpp"
 #include "components/FileTree.hpp"
+#include "../utils/ProgramState.h"
 
 namespace hot_spotter::gui {
 
@@ -50,6 +51,10 @@ namespace hot_spotter::gui {
     void MainWindow::render() {
         while (!glfwWindowShouldClose(window))
         {
+            if (!ProgramState::isRunning()) {
+                glfwSetWindowShouldClose(window, GLFW_TRUE);
+                break;
+            }
             glfwPollEvents();
             ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();

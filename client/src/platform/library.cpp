@@ -1,6 +1,6 @@
 #include <thread>
 
-#include "hot_spotter.hpp"
+#include "../hot_spotter.hpp"
 
 __attribute__((constructor))
 void so_entry() {
