@@ -7,7 +7,6 @@
 #include "utils/ProgramState.h"
 
 #include "imgui.h"
-#include <string>
 #include <map>
 
 #include "globals.hpp"
@@ -63,8 +62,6 @@ namespace hot_spotter {
 
         startGui();
 
-//        Logger::Log("Exiting, cleaning up");
-//        Logger::Log("Bye bye :)");
         tidy();
     }
 
