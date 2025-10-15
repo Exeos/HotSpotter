@@ -5,7 +5,7 @@
 
 #include "logger.hpp"
 
-namespace Logger {
+namespace hot_spotter::logger {
     template<typename... Args>
     void LogFormat(const char* format, Args... args) {
         // Calculate buffer size needed

@@ -18,7 +18,7 @@ namespace hot_spotter::class_dumper {
         jclass* classArr;
         jint classCount;
         if (jvmtiError error = jvmTi->GetLoadedClasses(&classCount, &classArr); error != JVMTI_ERROR_NONE) {
-            Logger::Log("Failed to get loaded classes");
+            hot_spotter::logger::Log("Failed to get loaded classes");
             return false;
         }
 
@@ -37,7 +37,7 @@ namespace hot_spotter::class_dumper {
 
         if (!modifiable.empty()) {
             if (jvmTi->RetransformClasses(modifiable.size(), modifiable.data()) != JVMTI_ERROR_NONE) {
-                Logger::Log("RetransformClasses failed");
+                hot_spotter::logger::Log("RetransformClasses failed");
                 cleanup(classArr, classCount);
                 return false;
             }

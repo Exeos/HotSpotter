@@ -16,7 +16,7 @@ namespace hot_spotter::gui {
 
     static void glfw_error_callback(int error, const char* description)
     {
-        Logger::LogFormat("GLFW Error %d: %s\n", error, description);
+        hot_spotter::logger::LogFormat("GLFW Error %d: %s\n", error, description);
     }
 
 }

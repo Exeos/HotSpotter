@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-namespace Logger {
+namespace hot_spotter::logger {
     bool InitConsole(const std::string& title = "HotSpotter");
     void CloseConsole();
     std::string GetInput();
