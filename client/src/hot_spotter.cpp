@@ -4,7 +4,6 @@
 
 #include "attacher/Attacher.hpp"
 #include "logger/logger.hpp"
-#include "utils/ProgramState.h"
 
 #include "imgui.h"
 #include <map>
@@ -33,32 +32,32 @@ namespace hot_spotter {
     class_map_t classes = {};
 
     void init() {
-        if (!Logger::InitConsole()) {
+        if (!hot_spotter::logger::InitConsole()) {
             return;
         }
-        Logger::Log("Initializing");
+        hot_spotter::logger::Log("Initializing");
 
         Attacher* attacher = createAttacher();
         if (!attacher->attach(jvm, jniEnv, jvmTi)) {
-            Logger::Log("Failed to attach to jvm.");
+            hot_spotter::logger::Log("Failed to attach to jvm.");
             tidy(); // Clean up before exiting
             return;
         }
         delete attacher;
 
         if (!capabilities::setCapabilities()) {
-            Logger::Log("Failed to get or set Capabilities");
+            hot_spotter::logger::Log("Failed to get or set Capabilities");
         }
 
         if (!hooks::initHooks()) {
-            Logger::Log("Failed to init hooks");
+            hot_spotter::logger::Log("Failed to init hooks");
         }
 
         if (!class_dumper::dump()) {
-            Logger::Log("Failed to setup class dump");
+            hot_spotter::logger::Log("Failed to setup class dump");
         }
 
-        Logger::Log("Initialized, starting gui");
+        hot_spotter::logger::Log("Initialized, starting gui");
 
         startGui();
 
@@ -77,7 +76,7 @@ namespace hot_spotter {
 
     void tidy() {
         if (!hooks::removeHooks()) {
-            Logger::Log("Failed to remove hooks");
+            hot_spotter::logger::Log("Failed to remove hooks");
         }
 
         for (auto entry : classes) {
@@ -85,6 +84,6 @@ namespace hot_spotter {
             delete[] entry.second.second.second;
         }
 
-        Logger::CloseConsole();
+        hot_spotter::logger::CloseConsole();
     }
 }

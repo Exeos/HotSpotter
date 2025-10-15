@@ -7,7 +7,7 @@ public:
     bool attach(JavaVM*& vm, JNIEnv*& env, jvmtiEnv*& jvmtiEnv) override {
         void* jvm = dlopen("libjvm.so", RTLD_NOW | RTLD_GLOBAL);
         if (!jvm) {
-            Logger::Log("Failed to obtain handle to libjvm.so");
+            hot_spotter::logger::Log("Failed to obtain handle to libjvm.so");
             return false;
         }
 
@@ -15,7 +15,7 @@ public:
         using t_JNI_GetCreatedJavaVMs = jint(*)(JavaVM**, jsize, jsize*);
         void* s_JNI_GetCreatedJavaVMs = dlsym(jvm, "JNI_GetCreatedJavaVMs");
         if (!s_JNI_GetCreatedJavaVMs) {
-            Logger::Log("Failed to find symbol: JNI_GetCreatedJavaVMs");
+            hot_spotter::logger::Log("Failed to find symbol: JNI_GetCreatedJavaVMs");
             dlclose(jvm);
             return false;
         }
@@ -24,7 +24,7 @@ public:
         // Call JNI_GetCreatedJavaVMs
         jint error = GetCreatedJavaVMs(&vm, 1, nullptr);
         if (error != JNI_OK) {
-            Logger::Log("Failed to obtain jvm");
+            hot_spotter::logger::Log("Failed to obtain jvm");
             dlclose(jvm);
             return false;
         }
@@ -32,7 +32,7 @@ public:
         // Attach current thread to JVM
         error = vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
         if (error != JNI_OK) {
-            Logger::Log("Failed to attach thread to jvm");
+            hot_spotter::logger::Log("Failed to attach thread to jvm");
             dlclose(jvm);
             return false;
         }
@@ -40,7 +40,7 @@ public:
         // Get JVMTI environment
         error = vm->GetEnv(reinterpret_cast<void**>(&jvmtiEnv), JVMTI_VERSION_1_1);
         if (error != JNI_OK || !jvmtiEnv) {
-            Logger::Log("Failed to obtain jvmTi");
+            hot_spotter::logger::Log("Failed to obtain jvmTi");
             dlclose(jvm);
             return false;
         }

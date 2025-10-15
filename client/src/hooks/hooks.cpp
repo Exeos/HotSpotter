@@ -25,7 +25,7 @@ namespace hot_spotter::hooks {
         memcpy(copyDest, class_data, class_data_len);
 
         classes[std::string(name)] = std::make_pair(static_cast<jclass>(jni->NewGlobalRef(class_being_redefined)), std::make_pair(class_data_len, copyDest));
-        Logger::LogFormat("Intercepted class load: %s", name);
+        hot_spotter::logger::LogFormat("Intercepted class load: %s", name);
     }
 
     bool initHooks() {

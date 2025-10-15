@@ -6,7 +6,7 @@
 
 static std::mutex logger_mutex;
 
-namespace Logger {
+namespace hot_spotter::logger {
 
     static std::string get_timestamp() {
         auto now = std::chrono::system_clock::now();
@@ -17,7 +17,7 @@ namespace Logger {
     }
 
     bool InitConsole(const std::string& title) {
-        // No setup needed for std::cout
+        // use default output because creating a new console and redirecting output is way too much effort on linux
         return true;
     }
 
@@ -34,6 +34,6 @@ namespace Logger {
     }
 
     void CloseConsole() {
-        // No cleanup needed for std::cout
+        // Not required
     }
 }

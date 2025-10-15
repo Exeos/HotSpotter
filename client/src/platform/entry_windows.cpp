@@ -1,11 +1,6 @@
-//
-// Created by Nick The Goat on 8/3/2025.
-//
-
 #include <iostream>
 #include <windows.h>
 #include <thread>
-#include "../utils/ProgramState.h"
 #include "../hot_spotter.hpp"
 
 DWORD WINAPI MainThread(HMODULE instance) {
