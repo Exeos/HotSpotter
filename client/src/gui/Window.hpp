@@ -7,11 +7,16 @@ namespace hot_spotter::gui {
 
     class Window {
     public:
+        Window(Window* p = nullptr) : parent(p) {}
+
         virtual ~Window() = default;
         virtual bool init()                          = 0;
         virtual void render()                        = 0;
         virtual void close()                        = 0;
         virtual const std::string& getName() const   = 0;
+
+    protected:
+        Window *parent = nullptr;
     };
 
     static void glfw_error_callback(int error, const char* description)

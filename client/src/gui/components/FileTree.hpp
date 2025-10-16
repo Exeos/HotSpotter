@@ -7,14 +7,14 @@
 #include <map>
 #include <memory>
 #include <imgui.h>
-#include "../Window.hpp" // Your base class
+#include "../Window.hpp"
 
 namespace hot_spotter::gui {
 
 class FileTree : public Window {
 public:
-    FileTree(const std::string& name, const std::vector<std::string>& fileList)
-        : name_(name), fileList_(fileList), built_(false), root_(true) {}
+    FileTree(Window* parent, const std::string& name, const std::vector<std::string>& fileList)
+        : Window(parent), name_(name), fileList_(fileList), built_(false), root_(true) {}
 
     bool init() override {
         // You could rebuild the tree here if needed
@@ -66,18 +66,27 @@ private:
         }
     }
 
-    void drawTree(const FileNode& node) const {
+    void drawTree(const FileNode& node, const std::string& currentPath = "") const {
         for (const auto& [key, child] : node.children) {
+            std::string fullPath = currentPath.empty() ? key : currentPath + "/" + key;
+
             if (child->isDir) {
                 if (ImGui::TreeNode(key.c_str())) {
-                    drawTree(*child);
+                    drawTree(*child, fullPath); // pass updated path
                     ImGui::TreePop();
                 }
             } else {
-                ImGui::BulletText("%s", key.c_str());
+                if (ImGui::Selectable(key.c_str())) {
+                    if (MainWindow* main = dynamic_cast<MainWindow*>(parent)) {
+                        main->selectedClass = std::make_pair(fullPath, classes[fullPath].first);
+                    } else {
+                        logger::Log("Failed to cast parent Window to MainWindow");
+                    }
+                }
             }
         }
     }
+
 
     std::string name_;
     std::vector<std::string> fileList_;
