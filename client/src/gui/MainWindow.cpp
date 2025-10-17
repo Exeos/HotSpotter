@@ -131,15 +131,73 @@ namespace hot_spotter::gui {
         ImGui::BeginChild("Class", ImVec2(0, 0), false);
         ImGui::Text("Class: %s", selectedClass.value().first.c_str());
         jclass selected = selectedClass.value().second;
+
+        char *classSignature = nullptr;
+        char *classSignatureGeneric = nullptr;
+        jint classModifiers = -1;
+
+        if (jvmtiError error = jvmTi->GetClassSignature(selected, &classSignature, &classSignatureGeneric);
+            error != JVMTI_ERROR_NONE) {
+            ImGui::Text("Failed to get class signature. Error: %d", error);
+        } else {
+            if (classSignature) {
+                ImGui::Text("Signature: %s", classSignature);
+                jvmTi->Deallocate(reinterpret_cast<unsigned char *>(classSignature));
+            }
+
+            if (classSignatureGeneric) {
+                ImGui::Text("Signature Generic: %s", classSignatureGeneric);
+                jvmTi->Deallocate(reinterpret_cast<unsigned char *>(classSignatureGeneric));
+            }
+        }
+
+        if (jvmtiError error = jvmTi->GetClassModifiers(selected, &classModifiers); error != JVMTI_ERROR_NONE) {
+            ImGui::Text("Failed to get class modifiers. Error: %d", error);
+        } else if (classModifiers != -1) {
+            std::vector<std::string> classModifiersVector = utils::java::parseJavaModifiers(classModifiers);
+
+            if (ImGui::CollapsingHeader("Modifiers##Class")) {
+                ImGui::Indent(10.0f);
+
+                for (const auto &i: classModifiersVector) {
+                    ImGui::Text(i.c_str());
+                }
+
+                ImGui::Unindent(10.0f);
+            }
+        }
+
+        jint fieldCount;
+        jfieldID *classFields;
+
         jint methodCount;
         jmethodID *classMethods;
-        if (jvmTi->GetClassMethods(selected, &methodCount, &classMethods) != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to obtained methods from class");
+
+        if (jvmtiError error = jvmTi->GetClassFields(selected, &fieldCount, &classFields); error != JVMTI_ERROR_NONE) {
+            ImGui::Text("Failed to obtained fields from class. Error: %d", error);
+        } else {
+            renderClassFields(selected, fieldCount, classFields);
+            jvmTi->Deallocate(reinterpret_cast<unsigned char *>(classFields));
+        }
+
+        if (jvmtiError error = jvmTi->GetClassMethods(selected, &methodCount, &classMethods);
+            error != JVMTI_ERROR_NONE) {
+            ImGui::Text("Failed to obtained methods from class. Error: %d", error);
         } else {
             renderClassMethods(methodCount, classMethods);
             jvmTi->Deallocate(reinterpret_cast<unsigned char *>(classMethods));
         }
+
         ImGui::EndChild(); // Class
+    }
+
+    void MainWindow::renderClassFields(jclass ownerClass, jint fieldCount, jfieldID *classFields) {
+        ImGui::BeginChild("ClassFields");
+        ImGui::Text("Fields (%d):", fieldCount);
+        for (int i = 0; i < fieldCount; i++) {
+            renderFieldCard(ownerClass, classFields[i], i);
+        }
+        ImGui::EndChild(); // ClassFields
     }
 
     void MainWindow::renderClassMethods(jint methodCount, jmethodID *classMethods) {
@@ -151,20 +209,87 @@ namespace hot_spotter::gui {
         ImGui::EndChild(); // ClassMethods
     }
 
+    void MainWindow::renderFieldCard(jclass ownerClass, jfieldID fieldId, int index) {
+        char *fieldName = nullptr;
+        char *fieldSignature = nullptr;
+        char *fieldGenericSignature = nullptr;
+        jint fieldModifiers = -1;
+
+        if (jvmtiError error = jvmTi->GetFieldName(ownerClass, fieldId, &fieldName, &fieldSignature,
+                                                   &fieldGenericSignature); error != JVMTI_ERROR_NONE) {
+            ImGui::Text("Failed to get field information. Error: %d", error);
+            return;
+        }
+
+        if (jvmtiError error = jvmTi->GetFieldModifiers(ownerClass, fieldId, &fieldModifiers);
+            error != JVMTI_ERROR_NONE) {
+            fieldModifiers = -1;
+            logger::LogFormat("Failed to get fields modifiers. Error: %d", error);
+        }
+
+        std::vector<std::string> fieldModifiersVector = utils::java::parseJavaModifiers(fieldModifiers);
+
+        char titleBuffer[512];
+        if (fieldSignature) {
+            snprintf(titleBuffer, sizeof(titleBuffer), "%s%s", fieldName, fieldSignature);
+        } else {
+            snprintf(titleBuffer, sizeof(titleBuffer), "%s", fieldName);
+        }
+
+        ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+        if (ImGui::CollapsingHeader(titleBuffer)) {
+            ImGui::Indent(10.0f);
+            if (fieldSignature) {
+                ImGui::Text("Signature: %s", fieldSignature);
+            }
+            if (fieldGenericSignature) {
+                ImGui::Text("Signature Generic: %s", fieldGenericSignature);
+            }
+
+            if (fieldModifiers != -1) {
+                char modifiersHeaderId[32];
+                snprintf(modifiersHeaderId, sizeof(modifiersHeaderId), "Modifiers##FMod%d", index);
+
+                if (ImGui::CollapsingHeader(modifiersHeaderId)) {
+                    ImGui::Indent(10.0f);
+
+                    for (const auto &i: fieldModifiersVector) {
+                        ImGui::Text(i.c_str());
+                    }
+
+                    ImGui::Unindent(10.0f);
+                }
+            }
+
+            ImGui::Unindent(10.0f);
+        }
+        ImGui::PopStyleColor();
+
+        // Clean up
+        if (fieldName) {
+            jvmTi->Deallocate(reinterpret_cast<unsigned char *>(fieldName));
+        }
+        if (fieldSignature) {
+            jvmTi->Deallocate(reinterpret_cast<unsigned char *>(fieldSignature));
+        }
+        if (fieldGenericSignature) {
+            jvmTi->Deallocate(reinterpret_cast<unsigned char *>(fieldGenericSignature));
+        }
+    }
+
     void MainWindow::renderMethodCard(jmethodID methodId, int index) {
         char *methodName = nullptr;
         char *methodSignature = nullptr;
         char *methodGenericSignature = nullptr;
         jint methodModifiers = -1;
 
-        jvmtiError error = jvmTi->GetMethodName(methodId, &methodName, &methodSignature, &methodGenericSignature);
-        if (error != JVMTI_ERROR_NONE) {
+        if (jvmtiError error = jvmTi->GetMethodName(methodId, &methodName, &methodSignature, &methodGenericSignature);
+            error != JVMTI_ERROR_NONE) {
             ImGui::Text("Failed to get method information. Error %d", error);
             return;
         }
 
-        error = jvmTi->GetMethodModifiers(methodId, &methodModifiers);
-        if (error != JVMTI_ERROR_NONE) {
+        if (jvmtiError error = jvmTi->GetMethodModifiers(methodId, &methodModifiers); error != JVMTI_ERROR_NONE) {
             methodModifiers = -1;
             logger::LogFormat("Failed to get method modifiers. Error: %d", error);
         }
@@ -190,7 +315,7 @@ namespace hot_spotter::gui {
 
             if (methodModifiers != -1) {
                 char modifiersHeaderId[32];
-                snprintf(modifiersHeaderId, sizeof(modifiersHeaderId), "Modifiers##Mod%d", index);
+                snprintf(modifiersHeaderId, sizeof(modifiersHeaderId), "Modifiers##FMod%d", index);
 
                 if (ImGui::CollapsingHeader(modifiersHeaderId)) {
                     ImGui::Indent(10.0f);
