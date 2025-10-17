@@ -28,7 +28,11 @@ namespace hot_spotter::gui {
 
         void renderClassDetails();
 
+        void renderClassFields(jclass ownerClass, jint fieldCount, jfieldID *classFields);
+
         void renderClassMethods(jint methodCount, jmethodID *classMethods);
+
+        void renderFieldCard(jclass ownerClass, jfieldID fieldId, int index);
 
         void renderMethodCard(jmethodID methodId, int index);
 
