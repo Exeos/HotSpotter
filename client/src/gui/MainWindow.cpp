@@ -138,7 +138,7 @@ namespace hot_spotter::gui {
 
         if (jvmtiError error = jvmTi->GetClassSignature(selected, &classSignature, &classSignatureGeneric);
             error != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to get class signature. Error: %d", error);
+            ImGui::Text("Failed to get class signature. Error: %s", utils::java::getJvmtiErrorName(error).c_str());
         } else {
             if (classSignature) {
                 ImGui::Text("Signature: %s", classSignature);
@@ -152,7 +152,7 @@ namespace hot_spotter::gui {
         }
 
         if (jvmtiError error = jvmTi->GetClassModifiers(selected, &classModifiers); error != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to get class modifiers. Error: %d", error);
+            ImGui::Text("Failed to get class modifiers. Error: %s", utils::java::getJvmtiErrorName(error).c_str());
         } else if (classModifiers != -1) {
             std::vector<std::string> classModifiersVector = utils::java::parseJavaModifiers(classModifiers);
 
@@ -174,7 +174,8 @@ namespace hot_spotter::gui {
         jmethodID *classMethods;
 
         if (jvmtiError error = jvmTi->GetClassFields(selected, &fieldCount, &classFields); error != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to obtained fields from class. Error: %d", error);
+            ImGui::Text("Failed to obtained fields from class. Error: %s",
+                        utils::java::getJvmtiErrorName(error).c_str());
         } else {
             renderClassFields(selected, fieldCount, classFields);
             jvmTi->Deallocate(reinterpret_cast<unsigned char *>(classFields));
@@ -182,7 +183,8 @@ namespace hot_spotter::gui {
 
         if (jvmtiError error = jvmTi->GetClassMethods(selected, &methodCount, &classMethods);
             error != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to obtained methods from class. Error: %d", error);
+            ImGui::Text("Failed to obtained methods from class. Error: %s",
+                        utils::java::getJvmtiErrorName(error).c_str());
         } else {
             renderClassMethods(methodCount, classMethods);
             jvmTi->Deallocate(reinterpret_cast<unsigned char *>(classMethods));
@@ -217,14 +219,15 @@ namespace hot_spotter::gui {
 
         if (jvmtiError error = jvmTi->GetFieldName(ownerClass, fieldId, &fieldName, &fieldSignature,
                                                    &fieldGenericSignature); error != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to get field information. Error: %d", error);
+            ImGui::Text("Failed to get field information. Error: %s", utils::java::getJvmtiErrorName(error).c_str());
             return;
         }
 
         if (jvmtiError error = jvmTi->GetFieldModifiers(ownerClass, fieldId, &fieldModifiers);
             error != JVMTI_ERROR_NONE) {
             fieldModifiers = -1;
-            logger::LogFormat("Failed to get fields modifiers. Error: %d", error);
+            logger::LogFormat("Failed to get fields modifiers. Error: %s",
+                              utils::java::getJvmtiErrorName(error).c_str());
         }
 
         std::vector<std::string> fieldModifiersVector = utils::java::parseJavaModifiers(fieldModifiers);
@@ -285,13 +288,14 @@ namespace hot_spotter::gui {
 
         if (jvmtiError error = jvmTi->GetMethodName(methodId, &methodName, &methodSignature, &methodGenericSignature);
             error != JVMTI_ERROR_NONE) {
-            ImGui::Text("Failed to get method information. Error %d", error);
+            ImGui::Text("Failed to get method information. Error %s", utils::java::getJvmtiErrorName(error).c_str());
             return;
         }
 
         if (jvmtiError error = jvmTi->GetMethodModifiers(methodId, &methodModifiers); error != JVMTI_ERROR_NONE) {
             methodModifiers = -1;
-            logger::LogFormat("Failed to get method modifiers. Error: %d", error);
+            logger::LogFormat("Failed to get method modifiers. Error: %s",
+                              utils::java::getJvmtiErrorName(error).c_str());
         }
 
         std::vector<std::string> methodModifiersVector = utils::java::parseJavaModifiers(methodModifiers);
