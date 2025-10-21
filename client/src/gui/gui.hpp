@@ -1,15 +1,29 @@
 #pragma once
 #include "GLFW/glfw3.h"
 #include "imgui.h"
+#include "widgets/ClassList.hpp"
+#include "widgets/Toolbar.hpp"
 
-namespace hot_spotter::gui {
 struct AppFonts {
   ImFont *regular;
   ImFont *semiBold;
   ImFont *bold;
 };
-extern AppFonts fonts;
-extern GLFWwindow *window;
+
+namespace hot_spotter::gui {
+inline GLFWwindow *window = nullptr;
+inline AppFonts fonts;
+
+inline ImGuiWindowFlags staticWindowFlags =
+    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+inline int display_w = 0;
+inline int display_h = 0;
+
+inline widget::Toolbar *widget_Toolbar = new widget::Toolbar(30);
+inline widget::ClassList *widget_ClassList = new widget::ClassList(30);
 
 bool init();
 

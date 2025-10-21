@@ -1,21 +1,16 @@
 #include "gui.hpp"
 
-#include <ranges>
-
 #include "../../external/fonts/roboto_bold.h"
 #include "../../external/fonts/roboto_regular.h"
 #include "../../external/fonts/roboto_semi_bold.h"
-#include "../globals.hpp"
 #include "../logger/logger.inl"
 #include "GLFW/glfw3.h"
-#include "components/file_tree.hpp"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include "imgui_internal.h"
+#include "widgets/ClassList.hpp"
+#include "widgets/Toolbar.hpp"
 
 namespace hot_spotter::gui {
-GLFWwindow *window = nullptr;
-AppFonts fonts;
 
 bool init() {
   glfwSetErrorCallback(glfw_error_callback);
@@ -62,7 +57,7 @@ bool init() {
       ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
 
   // Setup Dear ImGui style
-  ImGui::StyleColorsClassic();
+  ImGui::StyleColorsDark();
 
   // Setup scaling
   ImGuiStyle &style = ImGui::GetStyle();
@@ -92,11 +87,6 @@ bool init() {
 }
 
 void render() {
-  ImGuiWindowFlags mainWindowFlags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus;
-
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
     if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0) {
@@ -108,40 +98,25 @@ void render() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
 
-    int display_w, display_h;
+    float toolbarHeight = 30.0f;
     glfwGetFramebufferSize(window, &display_w, &display_h);
 
     ImGui::NewFrame();
     {
       ImGui::PushFont(fonts.regular, 0.0f);
+
+      // wrapper is required so imgui window uses entire native window
       ImGui::SetNextWindowPos(ImVec2(0, 0));
       ImGui::SetNextWindowSize(
           ImVec2(static_cast<float>(display_w), static_cast<float>(display_h)));
-
-      ImGui::Begin("HotSpotter", nullptr, mainWindowFlags);
-
-      ImGui::SetNextWindowPos(ImVec2(0, 0));
-      ImGui::SetNextWindowSize(ImVec2(200, static_cast<float>(display_h)),
-                               ImGuiCond_Once);
-      ImGui::SetNextWindowSizeConstraints(
-          ImVec2(200, static_cast<float>(display_h)),
-          ImVec2(static_cast<float>(display_w), static_cast<float>(display_h)));
-
-      ImGui::Begin("Classes", nullptr,
-                   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+      ImGui::Begin("Wrapper", nullptr, staticWindowFlags);
       {
-        std::vector<std::string> classFiles;
-        classFiles.reserve(classes.size());
-        for (const auto &key : classes | std::views::keys) {
-          classFiles.push_back(key);
-        }
-        auto tree = components::BuildFileTree(classFiles);
+        widget_Toolbar->Render();
+        widget_ClassList->Render();
 
-        RenderFileNode(tree);
         ImGui::End();
       }
 
-      ImGui::End();
       ImGui::PopFont();
     }
 
@@ -163,6 +138,9 @@ void cleanup() {
 
   glfwDestroyWindow(window);
   glfwTerminate();
+
+  delete widget_Toolbar;
+  delete widget_ClassList;
 }
 
 void glfw_error_callback(int error, const char *description) {
