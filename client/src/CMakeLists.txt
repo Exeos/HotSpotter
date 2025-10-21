@@ -9,6 +9,11 @@ target_sources(client PRIVATE
         class_dumper/class_dumper.cpp
         gui/components/file_tree.hpp
         gui/components/file_tree.cpp
+        gui/widgets/ClassList.hpp
+        gui/widgets/ClassList.cpp
+        gui/widgets/Toolbar.hpp
+        gui/widgets/Toolbar.cpp
+        gui/widgets/Widget.hpp
         gui/gui.hpp
         gui/gui.cpp
         hooks/hooks.hpp
