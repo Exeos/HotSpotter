@@ -14,7 +14,7 @@
 #include "jvmti.h"
 #include "capabilities/capabilities.hpp"
 #include "class_dumper/class_dumper.hpp"
-#include "gui/MainWindow.hpp"
+#include "gui/gui.hpp"
 #include "hooks/hooks.hpp"
 #ifdef _WIN32
 #include <windows.h>
@@ -66,12 +66,10 @@ namespace hot_spotter {
     }
 
     void startGui() {
-        auto *mainWindow = new gui::MainWindow();
-        if (mainWindow->init()) {
-            mainWindow->render();
-            mainWindow->close();
+        if (gui::init()) {
+            gui::render();
+            gui::cleanup();
         }
-        delete mainWindow;
     }
 
 
