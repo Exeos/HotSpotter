@@ -7,6 +7,7 @@
 
 #include "imgui.h"
 #include <map>
+#include <ranges>
 
 #include "globals.hpp"
 #include "jni.h"
@@ -19,53 +20,53 @@
 #include <windows.h>
 #endif
 
-static void glfw_error_callback(int error, const char* description)
-{
+static void glfw_error_callback(int error, const char *description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
 namespace hot_spotter {
-
-    JavaVM* jvm = nullptr;
-    JNIEnv* jniEnv = nullptr;
-    jvmtiEnv* jvmTi = nullptr;
+    JavaVM *jvm = nullptr;
+    JNIEnv *jniEnv = nullptr;
+    jvmtiEnv *jvmTi = nullptr;
     class_map_t classes = {};
 
     void init() {
-        if (!hot_spotter::logger::InitConsole()) {
+        if (!logger::InitConsole()) {
             return;
         }
-        hot_spotter::logger::Log("Initializing");
+        logger::Log("Initializing");
 
-        Attacher* attacher = createAttacher();
+        Attacher *attacher = createAttacher();
         if (!attacher->attach(jvm, jniEnv, jvmTi)) {
-            hot_spotter::logger::Log("Failed to attach to jvm.");
+            logger::Log("Failed to attach to jvm.");
             tidy(); // Clean up before exiting
             return;
         }
         delete attacher;
 
         if (!capabilities::setCapabilities()) {
-            hot_spotter::logger::Log("Failed to get or set Capabilities");
+            logger::Log("Failed to get or set Capabilities");
         }
 
         if (!hooks::initHooks()) {
-            hot_spotter::logger::Log("Failed to init hooks");
+            logger::Log("Failed to init hooks");
         }
 
         if (!class_dumper::dump()) {
-            hot_spotter::logger::Log("Failed to setup class dump");
+            logger::Log("Failed to setup class dump");
         }
 
-        hot_spotter::logger::Log("Initialized, starting gui");
+        logger::Log("Initialized, starting gui");
 
         startGui();
+
+        logger::Log("Exiting.");
 
         tidy();
     }
 
     void startGui() {
-        auto* mainWindow = new gui::MainWindow();
+        auto *mainWindow = new gui::MainWindow();
         if (mainWindow->init()) {
             mainWindow->render();
             mainWindow->close();
@@ -76,14 +77,15 @@ namespace hot_spotter {
 
     void tidy() {
         if (!hooks::removeHooks()) {
-            hot_spotter::logger::Log("Failed to remove hooks");
+            logger::Log("Failed to remove hooks");
         }
 
-        for (auto entry : classes) {
+        for (const auto &[jclazz, clazzData]: classes | std::views::values) {
             // delete manually allocated class file data memory
-            delete[] entry.second.second.second;
+            jniEnv->DeleteGlobalRef(jclazz);
+            delete[] clazzData.second;
         }
 
-        hot_spotter::logger::CloseConsole();
+        logger::CloseConsole();
     }
 }
