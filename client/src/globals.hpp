@@ -2,13 +2,17 @@
 #include "jni.h"
 #include "jvmti.h"
 #include <map>
+#include <mutex>
 #include <string>
 
-typedef std::map<std::string, std::pair<jclass, std::pair<jint, const unsigned char*>>> class_map_t;
+typedef std::map<std::string,
+                 std::pair<jclass, std::pair<jint, const unsigned char *>>>
+    class_map_t;
 
 namespace hot_spotter {
-    extern JavaVM* jvm;
-    extern JNIEnv* jniEnv;
-    extern jvmtiEnv* jvmTi;
-    extern class_map_t classes;
-}
+extern JavaVM *jvm;
+extern JNIEnv *jniEnv;
+extern jvmtiEnv *jvmTi;
+extern class_map_t classes;
+extern std::mutex classesMutex;
+} // namespace hot_spotter

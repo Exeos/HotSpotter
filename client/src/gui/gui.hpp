@@ -22,8 +22,10 @@ inline ImGuiWindowFlags staticWindowFlags =
 inline int display_w = 0;
 inline int display_h = 0;
 
+inline float toolbarHeight = 0.0f;
+
 inline widget::Toolbar *widget_Toolbar = new widget::Toolbar(30);
-inline widget::ClassList *widget_ClassList = new widget::ClassList(30);
+inline widget::ClassList *widget_ClassList = new widget::ClassList();
 
 bool init();
 

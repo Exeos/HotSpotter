@@ -1,14 +1,17 @@
 #pragma once
+#include "../components/file_tree.hpp"
 #include "Widget.hpp"
 
 namespace hot_spotter::gui::widget {
 class ClassList final : public Widget {
 public:
-  ClassList(float startY) : startY(startY) {}
+  explicit ClassList() = default;
+  void Init() override;
   void Render() override;
+  void AddClassToTree(const std::string &name);
 
 private:
-  float startY;
-  int width = 200;
+  float width = 200.0f;
+  std::shared_ptr<components::FileNode> classTree;
 };
 } // namespace hot_spotter::gui::widget
