@@ -83,6 +83,8 @@ bool init() {
   fonts.semiBold = semiBold;
   fonts.bold = bold;
 
+  widget_ClassList->Init();
+
   return true;
 }
 

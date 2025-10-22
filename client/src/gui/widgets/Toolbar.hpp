@@ -4,7 +4,7 @@
 namespace hot_spotter::gui::widget {
 class Toolbar final : public Widget {
 public:
-  Toolbar(float height) : height(height) {}
+  explicit Toolbar(const float height) : height(height) {}
   void Render() override;
 
 private:
