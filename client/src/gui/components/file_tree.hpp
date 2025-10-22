@@ -16,5 +16,5 @@ namespace hot_spotter::gui::components {
     void AddFileToTree(const std::shared_ptr<FileNode> &root,
                        const std::string &path);
 
-    void RenderFileNode(const std::shared_ptr<FileNode> &node);
+    void RenderFileNode(const std::shared_ptr<FileNode> &node, void (*selectCallback)(const std::string&));
 } // namespace hot_spotter::gui::components

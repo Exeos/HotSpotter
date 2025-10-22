@@ -8,6 +8,8 @@
 
 #include <ranges>
 
+#include "../../logger/logger.hpp"
+
 namespace hot_spotter::gui::widget {
   void ClassList::Init() {
     std::vector<std::string> classFiles;
@@ -25,19 +27,16 @@ namespace hot_spotter::gui::widget {
       AddClassToTree(name);
     }
 
-    ImGui::SetNextWindowPos(ImVec2(0, toolbarHeight));
-    ImGui::SetNextWindowSize(
-      ImVec2(width, static_cast<float>(display_h) - toolbarHeight),
-      ImGuiCond_Once);
-    ImGui::SetNextWindowSizeConstraints(
-      ImVec2(width, static_cast<float>(display_h)),
-      ImVec2(static_cast<float>(display_w), static_cast<float>(display_h)));
+    ImGui::BeginChild("Classes", ImVec2(width, 0), true); {
+      ImGui::Text("Classes (%d):", static_cast<int>(classes.size()));
 
-    ImGui::Begin("Classes", nullptr,
-                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar); {
-      RenderFileNode(classTree);
+      RenderFileNode(classTree, OnClassSelected);
     }
-    ImGui::End();
+    ImGui::EndChild();
+  }
+
+  void ClassList::OnClassSelected(const std::string &name) {
+    selectedClass = std::make_pair(name, classes[name].first);
   }
 
   void ClassList::AddClassToTree(const std::string &name) {

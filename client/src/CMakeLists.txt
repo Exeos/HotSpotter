@@ -11,6 +11,8 @@ target_sources(client PRIVATE
         gui/components/file_tree.cpp
         gui/widgets/ClassList.hpp
         gui/widgets/ClassList.cpp
+        gui/widgets/ClassView.hpp
+        gui/widgets/ClassView.cpp
         gui/widgets/Toolbar.hpp
         gui/widgets/Toolbar.cpp
         gui/widgets/Widget.hpp
