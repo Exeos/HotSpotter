@@ -53,7 +53,7 @@ namespace hot_spotter {
 
     startGui();
 
-    logger::Log("Exiting. TEST");
+    logger::Log("Exiting.");
 
     tidy();
   }
