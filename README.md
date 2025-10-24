@@ -4,9 +4,7 @@
 
 **HotSpotter** is a dynamic reverse engineering tool for the Java Virtual Machine (JVM). The goal is to provide a powerful GUI for attaching to running JVMs, inspecting classes, setting low-level hooks, and patching code? and data at runtime.
 
-<img width="3200" height="2000" alt="image" src="https://github.com/user-attachments/assets/ad1de643-a040-45d2-8eec-6ac643735798" />
-
-
+<img width="3200" height="2000" alt="image" src="https://github.com/user-attachments/assets/7a1d351d-17fa-4211-a6a3-4b2428423bf4" />
 
 ---
 
