@@ -8,15 +8,25 @@
 #include <filesystem>
 
 #include "../globals.hpp"
+#include "../../external/tinyfiledialogs/tinyfiledialogs.h"
 
 namespace fs = std::filesystem;
 
 // this code is unbelievable bad.. NEEDS to be recoded
 namespace hot_spotter::utils::io {
+        std::string selectFolder() {
+                const char *folder = tinyfd_selectFolderDialog("Select Folder", "");
+
+                if (folder) {
+                        return std::string(folder);
+                }
+                return "";
+        }
+
         bool exportClasses() {
                 fs::path homePath;
 #ifdef _WIN32
-        homePath = fs::path(std::getenv("USERPROFILE"));
+                homePath = fs::path(std::getenv("USERPROFILE"));
 #else
                 homePath = fs::path(std::getenv("HOME"));
 #endif
@@ -30,7 +40,7 @@ namespace hot_spotter::utils::io {
                 std::tm tm_now;
 
 #ifdef _WIN32
-        gmtime_s(&tm_now, &time_t_now);
+                gmtime_s(&tm_now, &time_t_now);
 #else
                 gmtime_r(&time_t_now, &tm_now);
 #endif
@@ -38,7 +48,7 @@ namespace hot_spotter::utils::io {
                 std::ostringstream timestr;
                 timestr << std::put_time(&tm_now, "%Y-%m-%d-%H-%M-%S");
                 // Create directory structure
-                fs::path dirPath = homePath / "hot_spotter" / timestr.str();
+                fs::path dirPath = selectFolder();
 
                 if (std::error_code ec; !fs::create_directories(dirPath, ec) && !fs::exists(dirPath)) {
                         return false;

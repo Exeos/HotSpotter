@@ -8,9 +8,9 @@ endif ()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
+if (WIN32)
     add_definitions(-D_MBCS)
-endif()
+endif ()
 
 find_package(OpenGL REQUIRED)
 
@@ -30,8 +30,11 @@ set(IMGUI_SOURCES
         external/imgui/backends/imgui_impl_opengl3.cpp
 )
 
+set(TINY_FILE_DIALOGS_SOURCES external/tinyfiledialogs/tinyfiledialogs.h external/tinyfiledialogs/tinyfiledialogs.c)
+
 add_library(client SHARED
         ${IMGUI_SOURCES}
+        ${TINY_FILE_DIALOGS_SOURCES}
 )
 
 add_subdirectory(src)
@@ -45,16 +48,16 @@ target_include_directories(client PRIVATE
 )
 
 # Platform-specific configurations
-if(WIN32)
+if (WIN32)
     message(STATUS "Building for Windows")
     target_include_directories(client PRIVATE external/java/windows)
-elseif(UNIX)
+elseif (UNIX)
     message(STATUS "Building for Linux/Unix")
     target_include_directories(client PRIVATE external/java/linux)
     target_link_libraries(client PRIVATE dl pthread)
-else()
+else ()
     message(FATAL_ERROR "Unsupported platform")
-endif()
+endif ()
 
 target_link_libraries(client PRIVATE
         glfw
