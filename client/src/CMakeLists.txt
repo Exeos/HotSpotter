@@ -7,10 +7,17 @@ target_sources(client PRIVATE
         capabilities/capabilities.cpp
         class_dumper/class_dumper.hpp
         class_dumper/class_dumper.cpp
-        gui/Window.hpp
-        gui/MainWindow.hpp
-        gui/MainWindow.cpp
-        gui/components/FileTree.hpp
+        gui/components/file_tree.hpp
+        gui/components/file_tree.cpp
+        gui/widgets/ClassList.hpp
+        gui/widgets/ClassList.cpp
+        gui/widgets/ClassView.hpp
+        gui/widgets/ClassView.cpp
+        gui/widgets/Toolbar.hpp
+        gui/widgets/Toolbar.cpp
+        gui/widgets/Widget.hpp
+        gui/gui.hpp
+        gui/gui.cpp
         hooks/hooks.hpp
         hooks/hooks.cpp
         logger/logger.inl
