@@ -113,7 +113,7 @@ namespace hot_spotter::gui {
 
           widget_ClassList->Render();
           ImGui::SameLine();
-          if (selectedClass.has_value()) {
+          if (widget_ClassView) {
             widget_ClassView->Render();
           }
 

@@ -8,57 +8,56 @@
 #include "../logger/logger.hpp"
 
 namespace hot_spotter::hooks {
-jvmtiEventCallbacks event_callbacks = {};
+    jvmtiEventCallbacks event_callbacks = {};
 
-static std::vector<std::string> pendingClasses;
+    static std::vector<std::string> pendingClasses;
 
-void JNICALL ClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv *jni,
-                               jclass class_being_redefined, jobject loader,
-                               const char *name, jobject protection_domain,
-                               jint class_data_len,
-                               const unsigned char *class_data,
-                               jint *new_class_data_len,
-                               unsigned char **new_class_data) {
-  // allocate memory and copy class data into it. NEEDS MEMORY CLEANUP
-  auto copyDest = new unsigned char[class_data_len];
-  memcpy(copyDest, class_data, class_data_len);
+    void JNICALL ClassFileLoadHook(jvmtiEnv *jvmti, JNIEnv *jni,
+                                   jclass class_being_redefined, jobject loader,
+                                   const char *name, jobject protection_domain,
+                                   jint class_data_len,
+                                   const unsigned char *class_data,
+                                   jint *new_class_data_len,
+                                   unsigned char **new_class_data) {
+        // allocate memory and copy class data into it. NEEDS MEMORY CLEANUP
+        auto copyDest = new unsigned char[class_data_len];
+        memcpy(copyDest, class_data, class_data_len);
 
-  auto className = std::string(name);
+        auto className = std::string(name);
 
-  classes[className] = std::make_pair(
-      reinterpret_cast<jclass>(jni->NewGlobalRef(class_being_redefined)),
-      std::make_pair(class_data_len, copyDest));
+        classes[className] = std::make_pair(
+            reinterpret_cast<jclass>(jni->NewGlobalRef(class_being_redefined)),
+            std::make_pair(class_data_len, copyDest));
+        pendingClasses.push_back(className);
 
-  pendingClasses.push_back(className);
+        logger::LogFormat("Intercepted class load: %s", name);
+    }
 
-  logger::LogFormat("Intercepted class load: %s", name);
-}
+    std::vector<std::string> DrainPendingClasses() {
+        std::vector<std::string> drained;
+        drained.swap(pendingClasses);
+        return drained;
+    }
 
-std::vector<std::string> DrainPendingClasses() {
-  std::vector<std::string> drained;
-  drained.swap(pendingClasses);
-  return drained;
-}
+    bool initHooks() {
+        event_callbacks.ClassFileLoadHook = ClassFileLoadHook;
+        jvmtiError setCallbacksError =
+                jvmTi->SetEventCallbacks(&event_callbacks, sizeof(event_callbacks));
+        jvmtiError setNotificationError = jvmTi->SetEventNotificationMode(
+            JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, nullptr);
 
-bool initHooks() {
-  event_callbacks.ClassFileLoadHook = ClassFileLoadHook;
-  jvmtiError setCallbacksError =
-      jvmTi->SetEventCallbacks(&event_callbacks, sizeof(event_callbacks));
-  jvmtiError setNotificationError = jvmTi->SetEventNotificationMode(
-      JVMTI_ENABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, nullptr);
+        return setCallbacksError == JVMTI_ERROR_NONE &&
+               setNotificationError == JVMTI_ERROR_NONE;
+    }
 
-  return setCallbacksError == JVMTI_ERROR_NONE &&
-         setNotificationError == JVMTI_ERROR_NONE;
-}
+    bool removeHooks() {
+        event_callbacks = {};
+        jvmtiError setCallbacksError =
+                jvmTi->SetEventCallbacks(&event_callbacks, sizeof(event_callbacks));
+        jvmtiError setNotificationError = jvmTi->SetEventNotificationMode(
+            JVMTI_DISABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, nullptr);
 
-bool removeHooks() {
-  event_callbacks = {};
-  jvmtiError setCallbacksError =
-      jvmTi->SetEventCallbacks(&event_callbacks, sizeof(event_callbacks));
-  jvmtiError setNotificationError = jvmTi->SetEventNotificationMode(
-      JVMTI_DISABLE, JVMTI_EVENT_CLASS_FILE_LOAD_HOOK, nullptr);
-
-  return setCallbacksError == JVMTI_ERROR_NONE &&
-         setNotificationError == JVMTI_ERROR_NONE;
-}
+        return setCallbacksError == JVMTI_ERROR_NONE &&
+               setNotificationError == JVMTI_ERROR_NONE;
+    }
 } // namespace hot_spotter::hooks

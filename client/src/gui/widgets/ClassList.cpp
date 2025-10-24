@@ -36,7 +36,14 @@ namespace hot_spotter::gui::widget {
   }
 
   void ClassList::OnClassSelected(const std::string &name) {
-    selectedClass = std::make_pair(name, classes[name].first);
+    const auto klassEntry = classes.find(name);
+    if (klassEntry == classes.end()) {
+      logger::LogFormat("Class not found in map: %s", name.c_str());
+      return;
+    }
+
+    delete widget_ClassView;
+    widget_ClassView = new ClassView(name, klassEntry->second.first);
   }
 
   void ClassList::AddClassToTree(const std::string &name) {

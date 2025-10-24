@@ -31,9 +31,7 @@ namespace hot_spotter::gui {
 
     inline widget::Toolbar *widget_Toolbar = new widget::Toolbar(30);
     inline widget::ClassList *widget_ClassList = new widget::ClassList();
-    inline widget::ClassView *widget_ClassView = new widget::ClassView();
-
-    inline std::optional<std::pair<std::string, jclass> > selectedClass = std::nullopt;
+    inline widget::ClassView *widget_ClassView = nullptr;
 
     bool init();
 
