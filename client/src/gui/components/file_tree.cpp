@@ -29,15 +29,19 @@ namespace hot_spotter::gui::components {
         std::make_shared<FileNode>(FileNode{fileName, true});
   }
 
-  void RenderFileNode(const std::shared_ptr<FileNode> &node, void (*selectCallback)(const std::string &)) {
+  void RenderFileNode(const std::shared_ptr<FileNode> &node,
+                      void (*selectCallback)(const std::string &),
+                      const std::string &currentPath) {
     for (auto &[name, child]: node->children) {
+      std::string fullPath = currentPath.empty() ? name : currentPath + "/" + name;
+
       if (child->isFile) {
         if (ImGui::Selectable(name.c_str())) {
-          selectCallback(name);
+          selectCallback(fullPath);
         }
       } else {
         if (ImGui::TreeNode(name.c_str())) {
-          RenderFileNode(child, selectCallback);
+          RenderFileNode(child, selectCallback, fullPath);
           ImGui::TreePop();
         }
       }
