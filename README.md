@@ -10,6 +10,16 @@ runtime.
 
 ---
 
+## Build Instructions
+
+### Windows Setup
+
+1. run `./make_fonts.sh` in `client\external` to generate the font header files required by the project.
+2. `cmake -S . -B build` in project root directory to configure the build directory.
+3. `cmake --build build --config Debug` or `cmake --build build --config Release` to compile the project.
+
+---
+
 ## Tech Stack
 
 | Layer         | Technology |
