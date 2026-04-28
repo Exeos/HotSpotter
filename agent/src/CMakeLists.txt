@@ -6,6 +6,10 @@ target_sources(agent PRIVATE
         jvm/attacher/attacher.hpp
         jvm/capabilities/capabilities.cpp
         jvm/capabilities/capabilities.hpp
+        jvm/hooks/hooks.cpp
+        jvm/hooks/hooks.hpp
+        jvm/reflection/reflection.cpp
+        jvm/reflection/reflection.hpp
 )
 
 if (WIN32)
