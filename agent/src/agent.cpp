@@ -7,6 +7,10 @@
 
 namespace agent {
 
+    JavaVM* vm;
+    JNIEnv* jniEnv;
+    jvmtiEnv* jvmTi;
+
     void init() {
         if (!logger::InitConsole()) {
             return;

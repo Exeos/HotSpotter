@@ -1,6 +1,6 @@
 target_sources(agent PRIVATE
-        agent.cpp
         agent.hpp
+        agent.cpp
         logger/logger.hpp
         logger/logger.inl
         jvm/attacher/attacher.hpp
