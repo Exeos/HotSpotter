@@ -1,4 +1,4 @@
-package me.exeos;
+package me.exeos.hotspotter;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
