@@ -1,5 +1,6 @@
 package me.exeos.hotspotter.ipc.packet;
 
+import me.exeos.hotspotter.ipc.packet.impl.ConnectPacket;
 import me.exeos.hotspotter.ipc.packet.impl.MessagePacket;
 
 public abstract class Packet {
@@ -22,6 +23,9 @@ public abstract class Packet {
 
         switch (packetBytes[0]) {
             case 0 -> {
+                return new ConnectPacket();
+            }
+            case 1 -> {
                 return new MessagePacket(payload);
             }
             default -> {

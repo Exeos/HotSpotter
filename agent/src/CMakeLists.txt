@@ -1,6 +1,12 @@
 target_sources(agent PRIVATE
         agent.hpp
         agent.cpp
+        ipc/Ipc.cpp
+        ipc/Ipc.hpp
+        ipc/packet/Packet.cpp
+        ipc/packet/Packet.hpp
+        ipc/packet/impl/ConnectPacket.cpp
+        ipc/packet/impl/ConnectPacket.hpp
         logger/logger.hpp
         logger/logger.inl
         jvm/attacher/attacher.hpp
