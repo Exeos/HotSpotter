@@ -1,4 +1,5 @@
 rootProject.name = "gui"
 
-include("app")
+include("gui")
 include("event-bus")
+include("ipc")
