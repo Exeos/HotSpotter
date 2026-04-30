@@ -7,6 +7,7 @@
 #include "ipc/Ipc.hpp"
 #include "ipc/packet/Packet.hpp"
 
+// this is only for testing. agent will enter via src/entry/entry_[platform].cpp
 int main()
 {
     Ipc ipc{};
